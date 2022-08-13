@@ -1,0 +1,39 @@
+version: '3.4'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: w:latest
+        command: python run.py
+        depends_on:
+            - worker
+            - rmq
+        environment:
+            - VAR1
+        stdin_open: true
+        tty: true
+
+        volumes:
+            - .:/app
+            
+    rmq:
+        image: rabbitmq
+        ports:
+            - "5672:5672"
+            
+    worker:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: workerimage:latest
+        command: ./celery-worker.sh
+        restart: always
+        depends_on:
+            - rmq
+            
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS    
+        volumes:
+          - .:/app
